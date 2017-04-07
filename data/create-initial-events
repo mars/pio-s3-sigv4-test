@@ -1,0 +1,15 @@
+#!/bin/bash
+
+OUTPUT_FILE=data/initial-events.json
+mkdir -p data
+
+psql $DATABASE_URL -c 'SELECT row_to_json(r) FROM (select sfid from salesforce.account) r;' | grep -e " {" | jq --compact-output '. | {event:"$set", entityType:"account",entityId:.sfid}' >> $OUTPUT_FILE
+
+
+psql $DATABASE_URL -c 'SELECT row_to_json(r) FROM (select sfid from salesforce.product2) r;' | grep -e " {" | jq --compact-output '.| {event:"$set", entityType:"product",entityId:.sfid}' >> $OUTPUT_FILE
+
+
+for i in `seq 0 250000 1500000`
+do 
+  psql $DATABASE_URL -c "SELECT row_to_json(r) FROM (select sfid,accountid,product2id from salesforce.asset LIMIT 250000 OFFSET $i) r;" | grep -e " {" | jq --compact-output '. | {event:"$set", entityType:"asset",entityId:.sfid, properties: { account: .accountid, product: .product2id } }' >> $OUTPUT_FILE
+done

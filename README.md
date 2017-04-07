@@ -1,0 +1,1 @@
+Reduced Test Case for S3 HDFS signatureV4 error w/ PIO 0.11.0-incubating-rc1
